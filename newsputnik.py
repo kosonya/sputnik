@@ -25,6 +25,7 @@ import argparse
 import random
 
 mu = 200
+gravity_factor = 2
 
 class Sputnik:
 	def __init__(self, start_point, g_point, v, planet_r, color = (255, 0, 255), boldness = 5):
@@ -121,13 +122,14 @@ class Sputnik:
 				self.enginex = 0
 
 def gravity(g_point, sputnik):
-        global mu
+	global mu
+	global gravity_factor
 	gx, gy = g_point
 	sx, sy = sputnik
 	dx = float(gx - sx)
 	dy = float(gy - sy)
 	dst = math.sqrt(dx*dx + dy*dy)
-	force = mu/(dst*dst)
+	force = mu/(dst**gravity_factor)
 	fx = dx*force/dst
 	fy = dy*force/dst
 	return fx, fy
@@ -246,9 +248,12 @@ def eca(ECC, TRA):
         TRA = TRA*math.pi/180
 #        tane = math.sqrt(1-ECC**2)*math.sin(TRA)/(ECC+math.cos(TRA))
 #        res = math.atan(tane)
-        t = math.tan(TRA/2)/(math.sqrt((1+ECC)/(1-ECC)))
-        res = 2*math.atan(t)
-        return 180*res/math.pi
+        try:
+            t = math.tan(TRA/2)/(math.sqrt((1+ECC)/(1-ECC)))
+            res = 2*math.atan(t)
+            return 180*res/math.pi
+        except Exception as e:
+            return 180
 
 def _mea(ECC, ECA):
         ECC = ECC*math.pi/180
@@ -326,7 +331,8 @@ def scaleblit(dst, src, zoom, center_shift = (0, 0) ):
 	dst.blit(pygame.transform.scale(src, (w, h)), rect ) 
 
 def main():
-        global mu
+	global mu
+	global gravity_factor
 	size = 700, 700
 	g_point = size[0]/2, size[0]/2
 	bgcolor = 255, 255, 255
@@ -348,6 +354,11 @@ def main():
 
 	parser.add_argument("-a", "--altitude", action="store", default=30, type=int, help="Initial altitude of sputnik. 30 by default")
 
+	parser.add_argument("-g", "--gravity-factor", action="store", default=2, type=float, help="Power of the denominator of gravity force. 2 by default")
+
+	parser.add_argument("-m", "--gravity-constant", action="store", default=200, type=float, help="Gravity constant. 200 by default")
+
+	
 	args = parser.parse_args()
 
 	prediction_depth = args.prediction_depth
@@ -359,6 +370,8 @@ def main():
 	vx = args.tangent_speed
 	vy = args.normal_speed
 	alt = args.altitude
+	gravity_factor = args.gravity_factor
+	mu = args.gravity_constant
 
 	pygame.init()
 
