@@ -86,13 +86,16 @@ class Sputnik:
 			self.future = []
 			distance = 0
 			self.future.append( (x, y, vx, vy) )
-			print(self.point, self.future[0])
 			while distance < prediction_distance:
 				ax, ay = gravity(self.g_point, (x, y))
-				vx += ax * 5 
-				vy += ay * 5
-				new_x = x + vx*5
-				new_y = y + vy*5 
+				ax += self.enginex*ep
+				ay += self.enginey*ep
+				# Use the same integration step as the simulation update to keep
+				# the predicted orbit consistent with the real trajectory.
+				vx += ax * timestep
+				vy += ay * timestep
+				new_x = x + vx*timestep
+				new_y = y + vy*timestep
 				distance += dist((x,y), (new_x, new_y))
 				x, y = new_x, new_y 
 				self.future.append( (x, y, vx, vy) )
